@@ -1,84 +1,116 @@
-# Letterboxd to Trakt Sync
+# Letterboxd → Trakt.tv Sync CLI
 
-A Python tool that syncs your watched movies and ratings from Letterboxd to Trakt.tv automatically.
+A simple, configurable command‑line tool to sync your Letterboxd watch history (and ratings) into your Trakt.tv account.
 
-## Overview
-
-This tool fetches your recently watched movies from your Letterboxd RSS feed and syncs them to your Trakt.tv account, including watch dates and ratings. It handles the conversion between Letterboxd's 5-star rating system and Trakt's 10-point scale.
+---
 
 ## Features
 
-- Automatically syncs watched movies from Letterboxd to Trakt.tv
-- Preserves watch dates for accurate history tracking
-- Converts Letterboxd ratings (0.5-5 stars) to Trakt ratings (1-10)
-- Handles rate limiting with built-in delays
-- Detailed logging for troubleshooting
+- Fetches your watched movies from your Letterboxd RSS feed  
+- Filters by “start date” so you can catch up only from a given day onward  
+- Syncs **history** (`/sync/history`) and **ratings** (`/sync/ratings`) in separate, retry‑aware steps  
+- Converts Letterboxd’s 0.5–5 star scale into Trakt’s 1–10 rating system  
+- Handles Trakt rate‑limits (HTTP 429) with automatic retries  
+- Detailed logging (`letterboxd_trakt_sync.log`) for troubleshooting  
 
-## Prerequisites
+---
 
-- Python 3.6+
-- A Letterboxd account with public activity
-- A Trakt.tv account with API access
+## Requirements
+
+- Python 3.7+  
+- A public Letterboxd account  
+- A Trakt.tv account with an API application (Client ID & Client Secret)  
+- The following Python packages:
+  ```bash
+  pip install requests feedparser python-dotenv
+  ```
+
+---
 
 ## Installation
 
-1. Clone this repository:
-```bash
-git clone https://github.com/yourusername/letterboxd-to-trakt-sync.git
-cd letterboxd-to-trakt-sync
-```
+1. **Clone the repo**  
+   ```bash
+   git clone https://github.com/yourusername/letterboxd-to-trakt-cli.git
+   cd letterboxd-to-trakt-cli
+   ```
 
-2. Install the required dependencies:
-```
-pip install requests feedparser python-dotenv
-```
+2. **Create a `.env`**  
+   In the project root, create `.env` with your credentials:
+   ```dotenv
+   # Trakt API credentials
+   TRAKT_CLIENT_ID=YOUR_TRAKT_CLIENT_ID
+   TRAKT_CLIENT_SECRET=YOUR_TRAKT_CLIENT_SECRET
+   TRAKT_REDIRECT_URI=urn:ietf:wg:oauth:2.0:oob
 
-3. Create a `.env` file with your credentials:
-```
-# Trakt API credentials
-TRAKT_CLIENT_ID=your_client_id_here
-TRAKT_CLIENT_SECRET=your_client_secret_here
-TRAKT_REDIRECT_URI=urn:ietf:wg:oauth:2.0:oob
+   # Letterboxd username
+   LETTERBOXD_USERNAME=your_letterboxd_username
+   ```
 
-# Letterboxd username
-LETTERBOXD_USERNAME=your_letterboxd_username
-```
+3. **Obtain a Trakt access token**  
+   The first time you run the script, it will look for `trakt_token.json`.  
+   You can generate this by exchanging your OAuth credentials manually or via a helper script:
+   ```bash
+   python trakt_auth.py
+   ```
+   *(See [Authentication](#authentication) below.)*
+
+---
 
 ## Usage
 
-1. First, you need to authenticate with Trakt.tv to generate a token file:
-```
-python trakt_auth.py
-```
-
-2. Once authenticated, run the sync script:
-```
-python main.py
+```bash
+python main.py [-s START_DATE]
 ```
 
-3. (Optional) Set up a cron job or scheduled task to run the script periodically.
+- `-s, --start-date`  
+  - **Format:** `MM-DD-YYYY`  
+  - **Example:** `-s 04-09-2025`  
+  - Use `all` (default) to sync your entire Letterboxd history.
 
-## How It Works
+**Examples**
 
-1. The script fetches your Letterboxd RSS feed to get your recently watched movies
-2. It extracts movie titles, years, watch dates, and ratings
-3. It formats the data for Trakt's API, including converting dates to ISO 8601 format
-4. It sends the data to Trakt's `/sync/history` and `/sync/ratings` endpoints
-5. It respects Trakt's rate limits by adding delays between requests
+- Sync everything:
+  ```bash
+  python main.py
+  ```
+- Sync from April 9, 2025 onward:
+  ```bash
+  python main.py -s 04-09-2025
+  ```
 
-## Troubleshooting
+---
 
-If you encounter issues:
+## Authentication
 
-- Check the `letterboxd_trakt_sync.log` file for detailed error messages
-- Ensure your Letterboxd profile is public
-- Verify your Trakt API credentials are correct
-- Make sure your token file hasn't expired
+1. Register a **“Script”** application on [Trakt.tv’s API dashboard](https://trakt.tv/oauth/applications).  
+2. Fill in your **Client ID**, **Client Secret**, and use `urn:ietf:wg:oauth:2.0:oob` as the redirect URI.  
+3. Run:
+   ```bash
+   python trakt_auth.py
+   ```
+   This should open a link in your browser. Authorize the app and paste the code back into the prompt.  
+4. A `trakt_token.json` file will be created automatically.
+
+---
+
+## Logging & Troubleshooting
+
+- All HTTP errors, rate‑limit warnings, and parsing issues are logged to `letterboxd_trakt_sync.log`.  
+- If you see **“Auth failed.”**, ensure your `.env` is correct and that `trakt_token.json` exists and is valid.  
+- If **“No movies to sync.”** appears, double‑check your Letterboxd RSS feed (must be public) and date filter.
+
+---
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+1. Fork the repo  
+2. Create a feature branch (`git checkout -b feature-name`)  
+3. Commit your changes (`git commit -m "Add feature"`)  
+4. Push and open a Pull Request  
+
+---
 
 ## License
 
-This project is licensed under the MIT License.
+This project is released under the [MIT License](LICENSE).  

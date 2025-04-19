@@ -1,3 +1,4 @@
 *.json
 *.env
 .idea
+letterboxd_trakt_sync.log
