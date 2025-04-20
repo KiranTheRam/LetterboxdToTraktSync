@@ -162,8 +162,19 @@ class LetterboxdToTraktSync:
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description='Sync Letterboxd to Trakt')
-    p.add_argument('-s', '--start-date', default='all',
-                   help="MM-DD-YYYY or 'all'")
+    group = p.add_mutually_exclusive_group()
+    group.add_argument('-s', '--start-date',
+                       help="Start date in MM-DD-YYYY format")
+    group.add_argument('-d', '--days', type=int,
+                       help="Number of days back to sync")
+
     args = p.parse_args()
-    start = None if args.start_date.lower() == 'all' else datetime.datetime.strptime(args.start_date, '%m-%d-%Y').date()
+
+    # Determine start_date
+    if args.days is not None:
+        start = datetime.date.today() - datetime.timedelta(days=args.days)
+    elif args.start_date:
+        start = datetime.datetime.strptime(args.start_date, '%m-%d-%Y').date()
+    else:
+        start = None  # 'all' behavior
     LetterboxdToTraktSync().run(start)
