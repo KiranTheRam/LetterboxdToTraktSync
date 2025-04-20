@@ -60,13 +60,26 @@ A simple, configurable command‑line tool to sync your Letterboxd watch history
 ## Usage
 
 ```bash
+python main.py
+```
+
+- Will sync your entire Letterboxd history.
+
+```bash
 python main.py [-s START_DATE]
 ```
 
 - `-s, --start-date`  
   - **Format:** `MM-DD-YYYY`  
   - **Example:** `-s 04-09-2025`  
-  - Use `all` (default) to sync your entire Letterboxd history.
+ 
+```bash
+python main.py [-d DAYS_AS_NUMBER]
+```
+
+- `-d, --days`  
+  - **Format:** `number`  
+  - **Example:** `-d 30`  
 
 **Examples**
 
@@ -79,6 +92,10 @@ python main.py [-s START_DATE]
   python main.py -s 04-09-2025
   ```
 
+- Sync from 30 days ago onward:
+  ```bash
+  python main.py -d 30
+  ```
 ---
 
 ## Authentication
